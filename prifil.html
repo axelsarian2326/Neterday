@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Neterday</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="profile-pic" id="profilePicContainer">
+            <span id="profilePicText">Photo<br>de<br>profil</span>
+            <img id="profilePicImg" src="" alt="" style="display:none;">
+            <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
+            <div class="edit-overlay"><i class="fa fa-camera"></i> Modifier</div>
+        </div>
+        <div class="profile-info">
+            <h2 id="nomPrenom">Nom Prénom
+                <button class="edit-btn" onclick="editNomPrenom()" title="Modifier"><i class="fa fa-pen"></i></button>
+            </h2>
+            <h3 id="pseudo">Pseudo
+                <button class="edit-btn" onclick="editPseudo()" title="Modifier"><i class="fa fa-pen"></i></button>
+            </h3>
+        </div>
+        <div class="title">Neterday</div>
+    </div>
+    <div class="section">
+        <div class="section-box">
+            Ecole : <span id="school" style="font-style:italic;">Ajouter une école</span>
+            <button class="edit-btn" onclick="editSchool()" title="Modifier"><i class="fa fa-pen"></i></button>
+        </div>
+        <div class="section-box">
+            Situation : <span id="love" style="font-style:italic;">votre situation</span>
+            <button class="edit-btn" onclick="editLove()" title="Modifier"><i class="fa fa-pen"></i></button>
+        </div>
+    </div>
+    <div class="posts">
+        <div class="post-box">
+            <h4><i class="fa fa-user-edit"></i> Mes postes</h4>
+            <ul class="post-list" id="mesPosts"></ul>
+            <div class="add-post-bar">
+                <button class="add-post-btn" onclick="openModal('addPostModal')">
+                    <i class="fa fa-plus"></i> Ajouter un post
+                </button>
+            </div>
+        </div>
+        <div class="post-box">
+            <h4><i class="fa fa-bolt"></i> Actualité</h4>
+            <div class="news-list" id="newsList"></div>
+        </div>
+        <div class="post-box">
+            <h4><i class="fa fa-users"></i> Mes amis</h4>
+            <div class="amis-list" id="amisList"></div>
+            <button class="add-friend-btn" onclick="openModal('addFriendModal')">
+                <i class="fa fa-user-plus"></i> Ajouter un ami
+            </button>
+        </div>
+    </div>
+    <div class="bubbles">
+        <div class="bubble" onclick="openModal('voyageModal')" tabindex="0">
+            <i class="fa fa-globe fa-2x"></i>
+            <div>Voyage</div>
+        </div>
+        <div class="bubble" onclick="openModal('musiqueModal')" tabindex="0">
+            <i class="fa fa-music fa-2x"></i>
+            <div>Musique</div>
+        </div>
+        <div class="bubble" onclick="openModal('passionModal')" tabindex="0">
+            <i class="fa fa-fire fa-2x"></i>
+            <div>Passion</div>
+        </div>
+        <div class="bubble" onclick="openModal('objectifModal')" tabindex="0">
+            <i class="fa fa-bullseye fa-2x"></i>
+            <div>Objectif</div>
+        </div>
+        <div class="bubble" onclick="openModal('souvenirModal')" tabindex="0" style="border:2px solid var(--main-purple);">
+            <i class="fa fa-image fa-2x"></i>
+            <div>Souvenir</div>
+        </div>
+    </div>
+    <div style="text-align:center;margin:20px;">
+        <button onclick="openModal('addSouvenirModal')" style="background:#a259ff;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:1.1em;">
+            <i class="fa fa-plus"></i> Ajouter un souvenir
+        </button>
+    </div>
+    <div class="modal-bg" id="addSouvenirModal">
+        <div class="modal-content" style="max-width:400px;">
+            <button class="close-btn" onclick="closeModal('addSouvenirModal')">Fermer</button>
+            <h2>Ajouter un souvenir</h2>
+            <input type="text" id="souvenirCountry" placeholder="Pays" style="width:90%;margin-bottom:10px;">
+            <input type="file" id="souvenirPhoto" accept="image/*" style="width:90%;margin-bottom:10px;">
+            <button onclick="addSouvenir()" style="background:#a259ff;color:#fff;border:none;border-radius:5px;padding:8px 18px;">Ajouter</button>
+        </div>
+    </div>
+    <!-- Toast notification -->
+    <div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#a259ff;color:#fff;padding:14px 32px;border-radius:12px;box-shadow:0 2px 12px #0002;z-index:99999;display:none;font-size:1.1em;"></div>
+    <!-- Modal conversation ami -->
+    <div class="modal-bg" id="chatModal">
+        <div class="modal-content" style="max-width:500px;">
+            <button class="close-btn" onclick="closeModal('chatModal')">Fermer</button>
+            <h2 id="chatTitle"></h2>
+            <div id="chatMessages" style="height:220px;overflow-y:auto;background:#f3f3f3;border-radius:8px;padding:10px;margin-bottom:10px;"></div>
+            <input type="text" id="chatInput" placeholder="Message..." style="width:80%;">
+            <button onclick="sendChatMessage()" style="background:#a259ff;color:#fff;border:none;border-radius:5px;padding:5px 14px;">Envoyer</button>
+        </div>
+    </div>
+    <div class="modal-bg" id="mapPostModal" style="display:none;">
+        <div class="modal-content" style="max-width:400px;">
+            <button class="close-btn" onclick="closeModal('mapPostModal')">Fermer</button>
+            <h2>Ajouter un post sur la carte</h2>
+            <input type="text" id="mapPostTitle" placeholder="Nom du post" style="width:90%;margin-bottom:10px;">
+            <input type="file" id="mapPostPhoto" accept="image/*" style="width:90%;margin-bottom:10px;">
+            <textarea id="mapPostDesc" placeholder="Description" style="width:90%;height:80px;margin-bottom:10px;"></textarea>
+            <button onclick="saveMapPost()" style="background:#a259ff;color:#fff;border:none;border-radius:5px;padding:8px 18px;">Enregistrer</button>
+        </div>
+    </div>
+    <div class="modal-bg" id="showMapPostModal" style="display:none;">
+        <div class="modal-content" style="max-width:400px;">
+            <button class="close-btn" onclick="closeModal('showMapPostModal')">Fermer</button>
+            <h2 id="showMapPostTitle"></h2>
+            <img id="showMapPostPhoto" src="" style="max-width:100%;border-radius:10px;display:none;margin-bottom:10px;">
+            <div id="showMapPostDesc"></div>
+        </div>
+    </div>
+</div>
+<!-- Modal Voyage -->
+<div class="modal-bg" id="mapPostModal" style="display:none;">
+    <div class="modal-content" style="max-width:400px;">
+        <button class="close-btn" onclick="closeModal('mapPostModal')">Fermer</button>
+        <h2>Ajouter un post sur la carte</h2>
+        <input type="text" id="mapPostTitle" placeholder="Nom du post" style="width:90%;margin-bottom:10px;">
+        <input type="file" id="mapPostPhoto" accept="image/*" style="width:90%;margin-bottom:10px;">
+        <textarea id="mapPostDesc" placeholder="Description" style="width:90%;height:80px;margin-bottom:10px;"></textarea>
+        <button onclick="saveMapPost()" style="background:#a259ff;color:#fff;border:none;border-radius:5px;padding:8px 18px;">Enregistrer</button>
+    </div>
+</div>
+
+<!-- Modal Musique -->
+<div class="modal-bg" id="musiqueModal">
+    <div class="modal-content" style="height:80vh;">
+        <button class="close-btn" onclick="closeModal('musiqueModal')">Fermer</button>
+        <h2>🎵 Musique du jour</h2>
+        <div id="musicOfDay" style="margin-bottom:20px;">
+            <strong id="musicDayTitle"></strong>
+            <audio id="musicDayAudio" controls style="width:100%; margin-top:10px;"></audio>
+        </div>
+        <h3 style="color:#7a0c0c;">Ta playlist (max 20)</h3>
+        <ul id="playlist" style="list-style:none; padding:0;"></ul>
+        <div style="margin-top:15px;">
+            <input type="text" id="musicTitle" placeholder="Titre de la musique" style="width:60%;">
+            <input type="url" id="musicUrl" placeholder="URL mp3" style="width:30%;">
+            <button onclick="addMusic()" style="background:#7a0c0c; color:#fff; border:none; border-radius:5px; padding:5px 10px; margin-left:5px;">Ajouter</button>
+        </div>
+    </div>
+</div>
+<!-- Modal Passion -->
+<div class="modal-bg" id="passionModal">
+    <div class="modal-content" style="height:80vh;">
+        <button class="close-btn" onclick="closeModal('passionModal')">Fermer</button>
+        <h2>🔥 Mes passions</h2>
+        <div id="passionTags"></div>
+        <input type="text" id="newPassion" placeholder="Ajouter une passion..." style="width:60%;">
+        <button onclick="addPassion()" style="background:#a259ff; color:#fff; border:none; border-radius:5px; padding:5px 10px;">Ajouter</button>
+        <div id="passionPosts"></div>
+    </div>
+</div>
+<!-- Modal Objectif -->
+<div class="modal-bg" id="objectifModal">
+    <div class="modal-content" style="height:80vh;">
+        <button class="close-btn" onclick="closeModal('objectifModal')">Fermer</button>
+        <h2>🎯 Mes objectifs</h2>
+        <div>
+            <input type="text" id="objectifNom" placeholder="Nom de l'objectif en cours" style="width:60%;">
+            <input type="number" id="objectifPourcent" placeholder="Progression (%)" min="0" max="100" style="width:20%;">
+            <button onclick="setObjectif()" style="background:#a259ff; color:#fff; border:none; border-radius:5px; padding:5px 10px;">Valider</button>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar" id="objectifBar" style="width:0%;">0%</div>
+        </div>
+        <h3>Objectifs accomplis</h3>
+        <ul id="objectifDone" style="list-style:none; padding:0;"></ul>
+    </div>
+</div>
+<!-- Modal Souvenir -->
+<div class="modal-bg" id="souvenirModal">
+    <div class="modal-content" style="height:80vh;">
+        <button class="close-btn" onclick="closeModal('souvenirModal')">Fermer</button>
+        <h2><i class="fa fa-image"></i> Mes souvenirs</h2>
+        <div class="souvenir-list" id="souvenirList"></div>
+    </div>
+</div>
+<!-- Modal Ajouter un ami -->
+<div class="modal-bg" id="addFriendModal">
+    <div class="modal-content" style="max-width:400px;">
+        <button class="close-btn" onclick="closeModal('addFriendModal')">Fermer</button>
+        <h2>Ajouter un ami</h2>
+        <input type="text" id="friendPseudo" placeholder="Pseudo de l'ami" style="width:90%;margin-bottom:15px;">
+        <button onclick="addFriend()" style="background:#a259ff; color:#fff; border:none; border-radius:5px; padding:8px 18px;">Ajouter</button>
+    </div>
+</div>
+<!-- Ajoute ou modifie ce bloc dans ton HTML -->
+<div class="modal-bg" id="voyageModal">
+    <div class="modal-content" style="max-width:900px;">
+        <button class="close-btn" onclick="closeModal('voyageModal')">Fermer</button>
+        <h2>🌍 Carte de mes voyages</h2>
+        <div id="googleMap" style="width:100%;height:60vh;border-radius:16px;box-shadow:0 8px 32px 0 #a259ff44;margin-bottom:20px;"></div>
+    </div>
+</div>
+<!-- Modal pour ajouter un post sur la carte -->
+<div class="modal-bg" id="mapPostModal" style="display:none;">
+    <div class="modal-content" style="max-width:400px;">
+        <button class="close-btn" onclick="closeModal('mapPostModal')">Fermer</button>
+        <h2>Ajouter un post sur la carte</h2>
+        <input type="text" id="mapPostTitle" placeholder="Nom du post" style="width:90%;margin-bottom:10px;">
+        <input type="file" id="mapPostPhoto" accept="image/*" style="width:90%;margin-bottom:10px;">
+        <textarea id="mapPostDesc" placeholder="Description" style="width:90%;height:80px;margin-bottom:10px;"></textarea>
+        <button onclick="saveMapPost()" style="background:#a259ff;color:#fff;border:none;border-radius:5px;padding:8px 18px;">Enregistrer</button>
+    </div>
+</div>
+<!-- Toast notification -->
+<div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#a259ff;color:#fff;padding:14px 32px;border-radius:12px;box-shadow:0 2px 12px #0002;z-index:99999;display:none;font-size:1.1em;"></div>
+
+<!-- Modal pour afficher le post -->
+<div class="modal-bg" id="showMapPostModal" style="display:none;">
+    <div class="modal-content" style="max-width:400px;">
+        <button class="close-btn" onclick="closeModal('showMapPostModal')">Fermer</button>
+        <h2 id="showMapPostTitle"></h2>
+        <img id="showMapPostPhoto" src="" style="max-width:100%;border-radius:10px;display:none;margin-bottom:10px;">
+        <div id="showMapPostDesc"></div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+<script src="script.js"></script>
+</body>
+</body>
+</html>
